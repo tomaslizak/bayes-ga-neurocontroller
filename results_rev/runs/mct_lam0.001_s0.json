@@ -1,0 +1,38 @@
+{
+  "tag": "mct_lam0.001_s0",
+  "seed": 0,
+  "cfg": {
+    "lam": 0.001,
+    "sigma_prior": 1.0,
+    "sigma_min": 0.001,
+    "sigma_max": 0.3,
+    "K": 16,
+    "n_islands": 9,
+    "pop": 300,
+    "gens": 800,
+    "plan": "self_adaptive"
+  },
+  "floor": 8.211861610412598,
+  "hidden": 8,
+  "arch": "gru",
+  "inputs": [
+    "e",
+    "x",
+    "v"
+  ],
+  "n_weights": 272,
+  "rho": -0.5242082640606626,
+  "sigma_mean": 0.06419187784194946,
+  "sigma_least": 0.09942375123500824,
+  "sigma_most": 0.006439011078327894,
+  "fell": 0.0,
+  "E_cost": 8.380788803100586,
+  "cost_std": 0.1337122619152069,
+  "kl": 951.1201171875,
+  "frac_at_cap": 0.03308823529411765,
+  "frac_at_floor": 0.04411764705882353,
+  "t_ga_s": 497.8748927116394,
+  "t_total_s": 499.3514754772186,
+  "rollouts": 69120000,
+  "plant_steps": 30412800000
+}

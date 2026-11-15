@@ -1,0 +1,11 @@
+{
+  "hidden": 32,
+  "n_weights": 3392,
+  "seed": 0,
+  "gens": 3000,
+  "battery_cost": 17.875965118408203,
+  "battery_fell": 0.0,
+  "heldout_cost": 26.734928131103516,
+  "heldout_steady_state_err": 0.03344154357910156,
+  "t_ga_s": 1742.434151172638
+}

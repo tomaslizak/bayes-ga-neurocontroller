@@ -96,7 +96,12 @@ def validation_battery(n_refs: int = 8, nsteps: int = NSTEPS, seed: int = 777,
     return torch.stack([get_random_reference(nsteps, rng, device) for _ in range(n_refs)])
 
 
-def gene_count(n_inputs: int, hidden_size: int) -> int:
+def gene_count(n_inputs: int, hidden_size, arch: str = "gru") -> int:
+    """Number of controller weights. GRU: hidden_size is an int (no biases, as in the
+    paper). MLP: hidden_size is (h1, h2), two tanh layers with biases and a tanh output."""
+    if arch == "mlp":
+        h1, h2 = hidden_size
+        return n_inputs * h1 + h1 + h1 * h2 + h2 + h2 + 1
     return 3 * hidden_size * n_inputs + 3 * hidden_size * hidden_size + hidden_size
 
 
@@ -133,6 +138,26 @@ def _gru_step(x_t: Tensor, h: Tensor, W_z, W_r, W_h, U_z, U_r, U_h, W_out,
 
 
 # ------------------------------------------------------------------ #
+#  MLP controller (feedforward, no memory): in -> h1 -> h2 -> 1, tanh throughout
+# ------------------------------------------------------------------ #
+
+def unpack_mlp_weights(genes: Tensor, input_dim: int, layers):
+    """Flat genes -> (W1, b1, W2, b2, w3, b3), each with a leading batch dimension."""
+    h1, h2 = layers
+    B = genes.shape[0]
+    sizes = [h1 * input_dim, h1, h2 * h1, h2, h2, 1]
+    W1, b1, W2, b2, w3, b3 = torch.split(genes, sizes, dim=1)
+    return W1.reshape(B, h1, input_dim), b1, W2.reshape(B, h2, h1), b2, w3, b3.squeeze(1)
+
+
+@torch.compile
+def _mlp_step(x_t: Tensor, W1, b1, W2, b2, w3, b3, max_torque: float) -> Tensor:
+    a1 = torch.tanh(torch.bmm(W1, x_t.unsqueeze(2)).squeeze(2) + b1)
+    a2 = torch.tanh(torch.bmm(W2, a1.unsqueeze(2)).squeeze(2) + b2)
+    return torch.tanh((a2 * w3).sum(dim=1) + b3) * max_torque
+
+
+# ------------------------------------------------------------------ #
 #  Batched closed-loop rollout (pure torch, GPU end to end)
 # ------------------------------------------------------------------ #
 
@@ -140,7 +165,8 @@ def _gru_step(x_t: Tensor, h: Tensor, W_z, W_r, W_h, U_z, U_r, U_h, W_out,
 def simulate(genes: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tensor,
              hidden_size: int = 8, episodes: int = 1,
              init_seed: int = None, plant_overrides: dict = None,
-             return_features: bool = False, return_traj: bool = False) -> dict:
+             return_features: bool = False, return_traj: bool = False,
+             arch: str = "gru") -> dict:
     """Batched closed-loop rollout; mirrors cartpole.simulate (see that docstring).
 
     ref: (nsteps,) shared, or (episodes, nsteps) one row per episode slot.
@@ -161,7 +187,13 @@ def simulate(genes: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tensor,
     N = B * E
     nsteps = ref.shape[-1]
 
-    W = unpack_gru_weights(torch.repeat_interleave(genes, E, dim=0), len(inputs), hidden_size)
+    rep_genes = torch.repeat_interleave(genes, E, dim=0)
+    if arch == "mlp":
+        W = unpack_mlp_weights(rep_genes, len(inputs), hidden_size)
+        n_state = 1                                   # unused dummy state
+    else:
+        W = unpack_gru_weights(rep_genes, len(inputs), hidden_size)
+        n_state = hidden_size
     scale = scale.to(device=device, dtype=dtype)
 
     ref_t = ref.to(device=device, dtype=dtype)
@@ -182,7 +214,7 @@ def simulate(genes: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tensor,
         th = (torch.rand(N, device=device, dtype=dtype) - 0.5) * 0.2
         thdot = (torch.rand(N, device=device, dtype=dtype) - 0.5) * 1.0
 
-    h = torch.zeros(N, hidden_size, device=device, dtype=dtype)
+    h = torch.zeros(N, n_state, device=device, dtype=dtype)
     ie = torch.zeros(N, device=device, dtype=dtype)
     cost = torch.zeros(N, device=device, dtype=dtype)
     fell = torch.zeros(N, device=device, dtype=torch.bool)
@@ -210,7 +242,10 @@ def simulate(genes: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tensor,
         th_prev = th.clone()
 
         x_t = torch.stack([cur[n] for n in inputs], dim=1) * scale
-        h, u = _gru_step(x_t, h, *W, max_torque)
+        if arch == "mlp":
+            u = _mlp_step(x_t, *W, max_torque)
+        else:
+            h, u = _gru_step(x_t, h, *W, max_torque)
         if return_traj:
             th_traj[:, k] = th_w
             u_traj[:, k] = u
@@ -274,14 +309,14 @@ def simulate_mc(genes: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tens
                 hidden_size: int = 8, K: int = 8, episodes: int = 1,
                 cost_clip: float = _bayes.COST_CLIP, init_seed: int = None,
                 plant_overrides: dict = None,
-                generator: torch.Generator = None) -> dict:
+                generator: torch.Generator = None, arch: str = "gru") -> dict:
     """K-sample Monte-Carlo evaluation of Bayesian [mu | sigma] individuals."""
     mu, sigma = _bayes.split(genes)
     B, n_w = mu.shape
     eps = torch.randn(B, K, n_w, device=genes.device, dtype=genes.dtype, generator=generator)
     Ws = (mu.unsqueeze(1) + sigma.unsqueeze(1) * eps).reshape(B * K, n_w)
     out = simulate(Ws, ref, inputs, scale, hidden_size, episodes,
-                   init_seed=init_seed, plant_overrides=plant_overrides)
+                   init_seed=init_seed, plant_overrides=plant_overrides, arch=arch)
     cost = out["cost"].clamp(max=cost_clip).reshape(B, K)
     return {"expected_cost": cost.mean(dim=1), "cost_std": cost.std(dim=1),
             "fell_rate": out["fell_rate"].reshape(B, K).mean(dim=1),
@@ -291,13 +326,14 @@ def simulate_mc(genes: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tens
 @torch.no_grad()
 def weight_criticality(mu: Tensor, ref: Tensor, inputs: tuple[str, ...], scale: Tensor,
                        hidden_size: int = 8, delta: float = 0.05,
-                       episodes: int = 8, init_seed: int = 555) -> Tensor:
+                       episodes: int = 8, init_seed: int = 555,
+                       arch: str = "gru") -> Tensor:
     """Per-weight criticality: mean |Delta cost| for +-delta nudges, on fixed initial
     states and the given (battery) reference so all comparisons share the conditions."""
     n_w = mu.shape[0]
     eye = delta * torch.eye(n_w, device=mu.device, dtype=mu.dtype)
     batch = torch.cat([mu.unsqueeze(0), mu.unsqueeze(0) + eye, mu.unsqueeze(0) - eye], dim=0)
     cost = simulate(batch, ref, inputs, scale, hidden_size, episodes,
-                    init_seed=init_seed)["cost"]
+                    init_seed=init_seed, arch=arch)["cost"]
     base, cp, cm = cost[0], cost[1:n_w + 1], cost[n_w + 1:]
     return 0.5 * ((cp - base).abs() + (cm - base).abs())

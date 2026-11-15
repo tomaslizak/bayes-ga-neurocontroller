@@ -4,6 +4,7 @@ and perturbation_pendulum have produced results_pd/*.
 """
 
 import json
+import os
 
 import numpy as np
 import torch
@@ -22,6 +23,7 @@ plt.rcParams.update({
 DEV = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 setup_precision("high")
 OUT = "paper/figures"
+os.makedirs(OUT, exist_ok=True)
 
 INPUTS, H, LAM = ("e", "theta", "theta_dot"), 8, "0.003"
 ref = P.get_reference(device=DEV)
@@ -119,8 +121,10 @@ for ax, p in zip(axes, params):
     ax.set_xlabel("multiplier")
 axes[0].set_ylabel("predictive uncertainty")
 axes[0].legend(fontsize=6.5, loc="lower left", framealpha=0.9)
-fig.tight_layout(); fig.savefig(f"{OUT}/fig_calibration.pdf"); plt.close(fig)
-print("fig_calibration.pdf")
+fig.tight_layout(); # first-submission version (64 samples, standard deviation); the revised figure is
+# drawn by rev_figures.py from results_rev/calibration_K2048.json
+fig.savefig(f"{OUT}/fig_calibration_K64.pdf"); plt.close(fig)
+print("fig_calibration_K64.pdf")
 
 # Fig 5: capability boundary (hold-level sweep)
 hs = json.load(open("results_pd/hold_sweep.json"))
@@ -133,6 +137,7 @@ ax.axvspan(0.31, lv.max(), color="gray", alpha=0.12)
 ax.set_xlabel("held set-point [rad]")
 ax.set_ylabel("cost / uncertainty")
 ax.legend(fontsize=6.5, loc="upper left", framealpha=0.9)
-fig.tight_layout(); fig.savefig(f"{OUT}/fig_boundary.pdf"); plt.close(fig)
-print("fig_boundary.pdf")
+fig.tight_layout(); # first-submission version; the revised figure is drawn by rev_figures.py
+fig.savefig(f"{OUT}/fig_boundary_K64.pdf"); plt.close(fig)
+print("fig_boundary_K64.pdf")
 print("done")

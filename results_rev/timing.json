@@ -1,0 +1,41 @@
+{
+  "gpu": "NVIDIA GeForce RTX 4070 Ti",
+  "n_individuals": 2700,
+  "K": 16,
+  "cases": {
+    "pendulum GRU-8": {
+      "n_weights": 272,
+      "s_per_generation_baseline": 0.10700796317541972,
+      "s_per_generation_sigma": 0.27851989459789667,
+      "baseline_1000_generations_s": 107.00796317541972,
+      "sigma_800_generations_s": 222.81591567831734,
+      "plant_steps_per_s_sigma": 136492942.64915714
+    },
+    "pendulum MLP 16-16": {
+      "n_weights": 353,
+      "s_per_generation_baseline": 0.09595434916748975,
+      "s_per_generation_sigma": 0.24338393941676864,
+      "baseline_1000_generations_s": 95.95434916748975,
+      "sigma_800_generations_s": 194.7071515334149,
+      "plant_steps_per_s_sigma": 156197652.52834418
+    },
+    "pendulum GRU-16": {
+      "n_weights": 928,
+      "s_per_generation_baseline": 0.11467589540795113,
+      "s_per_generation_sigma": 0.5576256065784643,
+      "baseline_1000_generations_s": 114.67589540795113,
+      "sigma_800_generations_s": 446.10048526277143,
+      "plant_steps_per_s_sigma": 68174774.52884997
+    },
+    "mountain car GRU-8": {
+      "n_weights": 272,
+      "s_per_generation_baseline": 0.12156517590240885,
+      "s_per_generation_sigma": 0.2780162083217874,
+      "baseline_1000_generations_s": 121.56517590240885,
+      "sigma_800_generations_s": 222.41296665742993,
+      "plant_steps_per_s_sigma": 136740229.03009567
+    }
+  },
+  "gradvi_s_per_iteration_1seed": 0.3486348735447973,
+  "gradvi_s_per_iteration_5seed": 0.34971735352999533
+}

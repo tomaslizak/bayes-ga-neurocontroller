@@ -1,0 +1,38 @@
+{
+  "tag": "gru16_g2400_s0",
+  "seed": 0,
+  "cfg": {
+    "lam": 0.003,
+    "sigma_prior": 1.0,
+    "sigma_min": 0.001,
+    "sigma_max": 0.3,
+    "K": 16,
+    "n_islands": 9,
+    "pop": 300,
+    "gens": 2400,
+    "plan": "self_adaptive"
+  },
+  "floor": 14.00264835357666,
+  "hidden": 16,
+  "arch": "gru",
+  "inputs": [
+    "e",
+    "theta",
+    "theta_dot"
+  ],
+  "n_weights": 928,
+  "rho": -0.3445023669725851,
+  "sigma_mean": 0.06803487241268158,
+  "sigma_least": 0.09006500989198685,
+  "sigma_most": 0.015710074454545975,
+  "fell": 0.00396728515625,
+  "E_cost": 19.238218307495117,
+  "cost_std": 17.30025291442871,
+  "kl": 3052.9658203125,
+  "frac_at_cap": 0.03771551724137931,
+  "frac_at_floor": 0.04956896551724138,
+  "t_ga_s": 4524.8185493946075,
+  "t_total_s": 4528.741755723953,
+  "rollouts": 207360000,
+  "plant_steps": 91238400000
+}

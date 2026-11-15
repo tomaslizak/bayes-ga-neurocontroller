@@ -1,0 +1,12 @@
+{
+  "battery_cost": {
+    "mlp_no_ie": 12.965025901794434,
+    "mlp_ie": 13.429559707641602
+  },
+  "chosen": "mlp_no_ie",
+  "inputs": [
+    "e",
+    "theta",
+    "theta_dot"
+  ]
+}

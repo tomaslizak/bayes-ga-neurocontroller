@@ -1,0 +1,27 @@
+{
+  "which": "rough",
+  "seed": 0,
+  "gens": 1000,
+  "n_weights": 272,
+  "scale": {
+    "e": 3.3333333333333335,
+    "x": 1.4285714285714286,
+    "v": 14.285714285714285
+  },
+  "battery_cost": 8.8677396774292,
+  "battery_fell": 0.0,
+  "heldout_cost": 13.47266674041748,
+  "heldout_tracking_part": 7.127720355987549,
+  "heldout_smoothness_part": 6.344934463500977,
+  "heldout_steady_state_err": 0.009060651063919067,
+  "peak_abs_u": 0.9615926146507263,
+  "steady_u_at_0125": 0.5681664943695068,
+  "p99": {
+    "e": 0.19511786103248596,
+    "x": 0.6237769722938538,
+    "v": 0.015205567702651024
+  },
+  "native_max_deviation": 5.960464477539063e-08,
+  "native_ended_early": false,
+  "t_ga_s": 149.35198259353638
+}

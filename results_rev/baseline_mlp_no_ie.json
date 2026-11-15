@@ -1,0 +1,21 @@
+{
+  "name": "mlp_no_ie",
+  "arch": "mlp",
+  "hidden": [
+    16,
+    16
+  ],
+  "inputs": [
+    "e",
+    "theta",
+    "theta_dot"
+  ],
+  "n_weights": 353,
+  "seed": 0,
+  "gens": 1000,
+  "battery_cost": 12.965025901794434,
+  "battery_fell": 0.0,
+  "heldout_cost": 20.510496139526367,
+  "heldout_steady_state_err": 0.0011764690279960632,
+  "t_ga_s": 293.62895369529724
+}

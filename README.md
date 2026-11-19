@@ -52,6 +52,8 @@ revision
   rev_mc_track.py            mountain car: baseline and sigma evolution (Table 4, Fig 8)
   rev_gradvi.py              gradient-based variational inference      (Table 5)
   rev_timing.py              wall-clock measurements                   (Sec. 6.3)
+  rev_tables.py              Tables 2-5 and the averaged runs, recomputed from the
+                             stored results (no training)
   rev_figures.py             Figs 5-8 and the graphical abstract
   figures_src/fig_schematic.tex   Fig 1 (TikZ)
 
@@ -80,6 +82,7 @@ All trained models and measurements are shipped, so the figures regenerate direc
 python make_figures.py          # Figs 2-4  -> paper/figures/
 python rev_figures.py           # Figs 5-8 and the graphical abstract
 python rev_pendulum.py --summary    # table of all revision runs
+python rev_tables.py            # numbers of Tables 2-5 and of the averaged runs
 ```
 
 `rev_analysis.py` and `rev_calibration.py` use fixed random seeds; rerunning them
